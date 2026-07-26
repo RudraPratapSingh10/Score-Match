@@ -1,0 +1,10 @@
+{
+  "name": "squad-optimizer-engine",
+  "version": "0.1.0",
+  "description": "Recommendation Engine modules for the Score! Match Squad Optimizer",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node behaviour-intelligence.test.js"
+  }
+}
