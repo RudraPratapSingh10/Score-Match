@@ -19,7 +19,7 @@ import {
   listEstimatedCells,
   isGoalkeeperType,
   UnknownBehaviourTypeError,
-} from './Search/Engine/behaviour-intelligence.js';
+} from './behaviour-intelligence.js';
 
 let passed = 0;
 let failed = 0;
