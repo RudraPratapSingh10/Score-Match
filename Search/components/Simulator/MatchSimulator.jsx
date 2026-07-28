@@ -1,102 +1,136 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FORMATIONS } from '../../constants/formations.js';
 
 export function MatchSimulator({ squad }) {
-  const [opponentFormation, setOpponentFormation] = useState('4-3-3');
+  // Opponent Formation State (Default: 4-3-3)
+  const [selectedOpponent, setSelectedOpponent] = useState('4-3-3');
 
-  const myFormation = squad?.formation || '4-4-2';
-  const players = squad?.players || [];
+  // Dynamic Win Rate & Advice Calculation based on Squad Level vs Opponent
+  const { winRate, advice } = useMemo(() => {
+    const rawPlayers = squad?.players || squad?.slots || [];
+    
+    // Calculate User's Average Team Power
+    const totalLevel = rawPlayers.reduce((acc, slot) => {
+      const lvl = slot.level || slot.player?.level || 1;
+      return acc + lvl;
+    }, 0);
+    
+    const avgLevel = rawPlayers.length > 0 ? totalLevel / rawPlayers.length : 1;
 
-  // Calculation Logic for Match Simulation
-  const avgLevel = (players.reduce((acc, p) => acc + (p.level || 1), 0) / (players.length || 1)).toFixed(1);
+    // Base difficulty multiplier per formation
+    const formationDifficulty = {
+      '4-3-3': 52,
+      '4-4-2': 58,
+      '5-3-2': 48,
+      '3-5-2': 62,
+      '5-2-1-2': 45,
+      '4-2-1-3': 55,
+      '4-1-2-3': 53,
+      '3-4-3': 50,
+      '4-1-4-1': 60,
+      '5-4-1': 42,
+      '4-2-3-1': 57,
+      '3-1-2-1-3': 49
+    };
 
-  // Counter Advantage Matrix Logic
-  const getAdvantageScore = () => {
-    let score = 50; // Base 50% chance
+    // Tactical advice mapping
+    const adviceMap = {
+      '4-3-3': 'Exploit the wings with fast Speedsters and watch out for counter-attacks on fullbacks.',
+      '4-4-2': 'Dominating the central midfield is key. Use high Response/Passing players in the engine room.',
+      '5-3-2': 'Tight defensive block! Rely on powerful strikers like Hammers or Menaces to break through.',
+      '3-5-2': 'Overload wide areas! Opponent has thin wing coverage—use fast wingers to stretch them.',
+      '5-2-1-2': 'Crowded central area. Switch play frequently and use long-range shooting opportunities.',
+      '4-2-1-3': 'Watch out for their CAM orchestrating attacks. Use aggressive CDMs with high Interception.',
+      '4-1-2-3': 'Break their single CDM pivot with rapid short passes and forward runs from Midfielders.',
+      '3-4-3': 'Maintain strong midfield presence and ensure your strikers have high Finishing levels.',
+      '4-1-4-1': 'Patience is needed. Circumvent their compact midfield using overlapping wingbacks.',
+      '5-4-1': 'Ultra-defensive wall. Maximize set-pieces and physical strikers to win aerial duels.',
+      '4-2-3-1': 'Press their double pivot early to disrupt build-up play before they reach your box.',
+      '3-1-2-1-3': 'Expose their high line with direct long balls to rapid Attacking forwards.'
+    };
 
-    // Formation counter logic
-    if (myFormation === '3-5-2' && opponentFormation === '4-3-3') score += 12;
-    if (myFormation === '4-3-3' && opponentFormation === '5-3-2') score -= 10;
-    if (myFormation === '5-3-2' && opponentFormation === '4-4-2') score += 8;
+    const baseWin = formationDifficulty[selectedOpponent] || 50;
+    
+    // Squad Level Boost (Higher squad level increases win chance)
+    const levelBonus = Math.round((avgLevel - 5) * 4); 
+    const calculatedRate = Math.min(95, Math.max(15, baseWin + levelBonus));
 
-    // Level Bonus
-    score += Math.round((Number(avgLevel) - 7) * 4);
+    return {
+      winRate: calculatedRate,
+      advice: adviceMap[selectedOpponent] || 'Adjust your tactics according to the opponent structure.'
+    };
+  }, [squad, selectedOpponent]);
 
-    return Math.min(95, Math.max(10, score));
-  };
-
-  const winProbability = getAdvantageScore();
+  const opponentList = [
+    '4-3-3', '4-4-2', '5-3-2', '3-5-2', '5-2-1-2', '4-2-1-3',
+    '4-1-2-3', '3-4-3', '4-1-4-1', '5-4-1', '4-2-3-1', '3-1-2-1-3'
+  ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', color: '#f8fafc' }}>
       
-      {/* Opponent Selection Dropdown */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-        <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#f8fafc' }}>
+      {/* 1. Opponent Formation Selector Buttons */}
+      <div>
+        <label style={{ display: 'block', fontSize: '0.9rem', color: '#94a3b8', marginBottom: '0.75rem' }}>
           Select Opponent Formation:
         </label>
-        <select
-          value={opponentFormation}
-          onChange={(e) => setOpponentFormation(e.target.value)}
-          style={{
-            padding: '0.5rem 0.8rem',
-            backgroundColor: 'var(--bg-dark, #0f172a)',
-            color: '#fff',
-            border: '1px solid var(--border, #334155)',
-            borderRadius: '6px',
-            fontSize: '0.85rem'
-          }}
-        >
-          {FORMATIONS.map(f => (
-            <option key={f.id} value={f.id}>{f.name}</option>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {opponentList.map(fmt => (
+            <button
+              key={fmt}
+              onClick={() => setSelectedOpponent(fmt)}
+              style={{
+                padding: '0.4rem 0.8rem',
+                borderRadius: '6px',
+                border: '1px solid',
+                borderColor: selectedOpponent === fmt ? '#10b981' : '#334155',
+                backgroundColor: selectedOpponent === fmt ? 'rgba(16, 185, 129, 0.2)' : '#1e293b',
+                color: selectedOpponent === fmt ? '#10b981' : '#cbd5e1',
+                fontWeight: selectedOpponent === fmt ? 'bold' : 'normal',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {fmt}
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
-      {/* Probability Gauge Meter */}
+      {/* 2. Win Rate Card */}
       <div style={{
-        padding: '1rem',
-        backgroundColor: 'rgba(15, 23, 42, 0.7)',
+        padding: '1.25rem',
+        backgroundColor: '#1e293b',
+        borderRadius: '10px',
+        border: '1px solid #334155',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <div>
+          <span style={{ fontSize: '0.9rem', color: '#94a3b8', display: 'block' }}>
+            Match Win Rate vs <strong style={{ color: '#fff' }}>{selectedOpponent}</strong>
+          </span>
+          <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: winRate >= 50 ? '#10b981' : '#f59e0b' }}>
+            {winRate}% <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 'normal' }}>Projected Chance</span>
+          </span>
+        </div>
+      </div>
+
+      {/* 3. Dynamic Tactical Advice */}
+      <div style={{
+        padding: '1rem 1.25rem',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
         borderRadius: '8px',
-        border: '1px solid #334155'
+        border: '1px solid rgba(59, 130, 246, 0.3)',
+        fontSize: '0.88rem',
+        color: '#93c5fd'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-          <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-            Match Win Rate vs <strong style={{ color: '#fff' }}>{opponentFormation}</strong>
-          </span>
-          <span style={{ 
-            fontWeight: 'bold', 
-            color: winProbability >= 50 ? '#10b981' : '#f43f5e' 
-          }}>
-            {winProbability}% Projected Chance
-          </span>
-        </div>
-
-        <div style={{ width: '100%', background: 'rgba(255,255,255,0.1)', height: '10px', borderRadius: '5px', overflow: 'hidden' }}>
-          <div style={{ 
-            width: `${winProbability}%`, 
-            background: winProbability >= 50 ? '#10b981' : '#f43f5e', 
-            height: '100%',
-            transition: 'width 0.4s ease'
-          }} />
-        </div>
-      </div>
-
-      {/* Tactical Counter Hints */}
-      <div style={{
-        padding: '0.75rem 1rem',
-        backgroundColor: 'rgba(51, 65, 85, 0.4)',
-        borderRadius: '6px',
-        borderLeft: '4px solid #3b82f6'
-      }}>
-        <span style={{ fontWeight: 'bold', fontSize: '0.85rem', color: '#60a5fa' }}>
+        <strong style={{ color: '#60a5fa', display: 'block', marginBottom: '0.25rem' }}>
           💡 Tactical Advice:
-        </span>
-        <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#cbd5e1' }}>
-          {opponentFormation === '4-3-3' && 'Opponent relies on wingers. Ensure your wing-backs have high speed or use "Guard" to cover wide gaps.'}
-          {opponentFormation === '5-3-2' && 'Opponent is playing defensive. Use "Architect" or "Producer" in midfield to break down low blocks.'}
-          {!['4-3-3', '5-3-2'].includes(opponentFormation) && 'Maintain strong midfield presence and ensure your strikers have high Finishing levels.'}
-        </p>
+        </strong>
+        {advice}
       </div>
 
     </div>
