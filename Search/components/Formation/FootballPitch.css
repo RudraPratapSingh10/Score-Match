@@ -1,0 +1,111 @@
+.pitch-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+.football-pitch {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  height: 620px;
+  background: linear-gradient(180deg, #1b4325 0%, #0d2813 100%);
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.center-line {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.center-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 110px;
+  height: 110px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.penalty-area {
+  position: absolute;
+  width: 58%;
+  height: 110px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  left: 21%;
+}
+
+.top-penalty {
+  top: 0;
+  border-top: none;
+}
+
+.bottom-penalty {
+  bottom: 0;
+  border-bottom: none;
+}
+
+.pitch-player-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 5;
+}
+
+.pitch-player-node:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+.jersey-badge {
+  width: 36px;
+  height: 36px;
+  background: #e63946;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.player-label-card {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.player-name-text {
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 600;
+  display: block;
+  white-space: nowrap;
+}
+
+.player-level-badge {
+  color: #4ade80;
+  font-size: 9px;
+  display: block;
+  font-weight: 500;
+}
