@@ -3,57 +3,96 @@ import React from 'react';
 export function RecommendationPanel({ squad }) {
   const players = squad?.players || [];
 
-  // Tactical Recommendations Logic
-  const getTacticalTips = () => {
-    const tips = [];
-    const hasGK = players.some(p => p.position === 'GK' && ['Goalkeeper', 'Sweeper Keeper'].includes(p.type));
-    const hasPlaymaker = players.some(p => ['Producer', 'Architect', 'Commander'].includes(p.type));
-    const hasFinisher = players.some(p => ['Speedster', 'Intruder', 'Hammer', 'Prowler'].includes(p.type));
+  // Dynamic Total Fit Score calculation
+  const totalScore = players.reduce((acc, p) => acc + ((p.level || 1) * 10), 0);
+  const maxPossibleScore = (players.length || 11) * 110;
 
-    if (!hasGK) {
-      tips.push({ title: 'Goalkeeper Selection', desc: 'Assign "Goalkeeper" or "Sweeper Keeper" to your GK slot for optimum shot-stopping synergy.', status: 'warning' });
-    } else {
-      tips.push({ title: 'Solid Goalkeeping', desc: 'Your GK behavior matches standard defensive positioning.', status: 'success' });
-    }
+  // Dynamic Confidence Meter Calculation
+  const assignedCount = players.filter(p => p.playerId || p.name).length;
+  const confidenceScore = Math.min(
+    100,
+    Math.round((totalScore / maxPossibleScore) * 100 + (assignedCount === 11 ? 10 : 0))
+  );
 
-    if (!hasPlaymaker) {
-      tips.push({ title: 'Missing Playmaker', desc: 'Consider adding a "Producer" or "Architect" in Midfield for higher assist rates.', status: 'warning' });
-    } else {
-      tips.push({ title: 'Creative Midfield', desc: 'Playmaker roles active. Ball distribution efficiency is boosted.', status: 'success' });
-    }
-
-    if (!hasFinisher) {
-      tips.push({ title: 'Attack Power', desc: 'Add a "Speedster" or "Hammer" up front to convert chances inside the penalty box.', status: 'warning' });
-    } else {
-      tips.push({ title: 'Lethal Attack', desc: 'Attackers have direct scoring profiles selected.', status: 'success' });
-    }
-
-    return tips;
-  };
-
-  const tips = getTacticalTips();
+  if (!players || players.length === 0) {
+    return <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No players assigned yet.</div>;
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      {tips.map((tip, idx) => (
-        <div 
-          key={idx} 
-          style={{ 
-            padding: '0.75rem 1rem', 
-            borderRadius: '6px', 
-            backgroundColor: tip.status === 'warning' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-            borderLeft: `4px solid ${tip.status === 'warning' ? '#eab308' : '#10b981'}`,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.2rem'
-          }}
-        >
-          <span style={{ fontWeight: 'bold', fontSize: '0.85rem', color: tip.status === 'warning' ? '#fde047' : '#6ee7b7' }}>
-            {tip.status === 'warning' ? '⚠️' : '✅'} {tip.title}
-          </span>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>{tip.desc}</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      
+      {/* Header Summary */}
+      <div style={{
+        padding: '0.85rem 1rem',
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        borderRadius: '8px',
+        border: '1px solid #334155'
+      }}>
+        <h3 style={{ margin: 0, fontSize: '0.95rem', color: '#f59e0b' }}>
+          🎯 Recommendation Center: Strategic Analysis
+        </h3>
+        <p style={{ margin: '0.3rem 0 0 0', fontSize: '0.82rem', color: '#cbd5e1' }}>
+          Optimized squad lineup formed with total score of <strong style={{ color: '#10b981' }}>{totalScore}</strong>.
+        </p>
+
+        {/* Dynamic Confidence Meter Bar */}
+        <div style={{ marginTop: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.25rem' }}>
+            <span>Optimization Confidence</span>
+            <span style={{ fontWeight: 'bold', color: '#10b981' }}>{confidenceScore}%</span>
+          </div>
+          <div style={{ width: '100%', background: 'rgba(255,255,255,0.1)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{
+              width: `${confidenceScore}%`,
+              background: confidenceScore >= 70 ? '#10b981' : '#f59e0b',
+              height: '100%',
+              transition: 'width 0.4s ease'
+            }} />
+          </div>
         </div>
-      ))}
+      </div>
+
+      {/* Dynamic Positional Fit Breakdown List */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+        gap: '0.6rem',
+        maxHeight: '260px',
+        overflowY: 'auto'
+      }}>
+        {players.map((slot, index) => (
+          <div key={slot.id || index} style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '0.5rem 0.75rem',
+            backgroundColor: 'rgba(30, 41, 59, 0.5)',
+            borderRadius: '6px',
+            border: '1px solid #334155',
+            fontSize: '0.78rem'
+          }}>
+            <div>
+              <span style={{ color: '#94a3b8' }}>Fit #{index + 1} (<strong style={{ color: '#10b981' }}>{slot.position || 'SLOT'}</strong>):</span>
+              <span style={{ display: 'block', fontWeight: '600', color: '#f8fafc', marginTop: '2px' }}>
+                {slot.name || 'Unassigned'}
+              </span>
+            </div>
+            
+            <span style={{
+              padding: '2px 8px',
+              borderRadius: '4px',
+              backgroundColor: 'rgba(245, 158, 11, 0.15)',
+              color: '#f59e0b',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              fontWeight: 'bold',
+              fontSize: '0.72rem'
+            }}>
+              {slot.type || 'Guard'}
+            </span>
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 }
